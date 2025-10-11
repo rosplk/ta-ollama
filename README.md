@@ -1,22 +1,24 @@
 Splunk Technology Add-on for Ollama Large Language Model Monitoring
+by Rod Soto (rod@rodsoto.net)
+<img width="1272" height="442" alt="cimv51" src="https://github.com/user-attachments/assets/c8d98c64-9825-4eeb-bbb6-0c21ae663a60" />
+<img width="1268" height="626" alt="cimv52" src="https://github.com/user-attachments/assets/385c2ce7-c813-4f39-bd3c-db4a89f09443" />
 
-![492114d1-4209-4898-b101-85e7c0f3d98f](https://github.com/user-attachments/assets/5ba5ffa1-2781-4084-93a2-bc5127f0b37c)
-![835f0cc3-18c2-4137-a1d0-3032c2489178](https://github.com/user-attachments/assets/513db398-c1a7-4da0-b80e-90cede73e6eb)
-![3c96c015-66aa-4c9d-a9e2-96ecbb32e008](https://github.com/user-attachments/assets/4c2634c1-a728-43ae-b74f-e130641dca35)
-![0da3cc15-c041-4a09-86a3-a1577a64d160](https://github.com/user-attachments/assets/04e5efc5-07b5-4687-af69-517e64e70bb6)
+
+
 
 Overview
 
-TA-ollama provides comprehensive monitoring capabilities for Ollama large language model deployments within Splunk. The add-on enables organizations to gain operational visibility into their LLM infrastructure through file monitoring, custom telemetry collection and enterprise-grade CIM compliance.
+TA-ollama provides comprehensive monitoring capabilities for Ollama large language model deployments within Splunk. The add-on enables organizations to gain operational visibility into their LLM infrastructure through file monitoring, custom telemetry collection and CIM compliance.
+
+Version 0.1.3 - CIM 5.0+ Compliance
 
 Features:
 
 - File Monitoring: Automatic ingestion of Ollama server HTTP access logs
 - HEC Integration: Flexible data collection via HTTP Event Collector
-- CIM Compliance: Full Common Information Model support for enterprise security
+- CIM 5.0+ Compliance: Common Information Model support for Web datamodel
 - Security First: Built-in data redaction and secure defaults
 - Cross-Platform: Windows and Linux Support
-- Cloud Ready: Validated for Splunk Cloud Platform
 
 Quick start
 
@@ -24,14 +26,64 @@ Quick start
 
 Data Sources
 
-- ollama:server (HTTP access logs withg GIN parsing) can be collected via file monitoring
+- ollama:server (HTTP access logs with GIN parsing) can be collected via file monitoring
 - ollama:api (Custom API telemetry) Collected via HEC
 - ollama:prompts (LLM Usage analytics) Collected via HEC
 
 Supported Data Models
-- Web
-- Application_State
+- Web (CIM 5.0+ compliant)
 
-CIM Fields
-- src, dest, http_response_code, http_method
-- uri_path, response_time_ms, vendor_product, app
+CIM Web Fields (v0.1.3)
+**Core Required Fields:**
+- src, dest, action, status, url
+- http_method, uri_path, http_response_code
+- response_time_ms, duration
+
+**Extended Fields:**
+- bytes_in, bytes_out
+- http_user_agent
+- site, dest_port
+- transport, protocol
+- web_method, uri_path
+- app
+
+**Metadata Fields:**
+- http_content_type
+
+Installation
+
+1. Download TA-ollama-v0.1.3.tgz
+2. Install via Splunk Web: Apps > Manage Apps > Install app from file
+3. Configure inputs via Settings > Data Inputs > Files & Directories
+
+Testing CIM Compliance
+
+Run these searches to verify CIM 5.0+ compliance:
+
+```spl
+| datamodel Web search
+  | search Web.vendor_product="Ollama API Server"
+  | rename Web.* as *
+  | stats count by _time src dest url http_method status http_content_type
+
+index=main sourcetype=ollama:server
+| stats count by action, src, dest, http_method, status, url, protocol
+
+```
+
+Requirements
+
+- Splunk Enterprise 8.0+ or Splunk Cloud Platform
+- Ollama server running with GIN logging format
+- For HEC inputs: HTTP Event Collector configured
+
+License
+
+MIT License - See LICENSE file for details
+
+Support
+
+- Author: Rod Soto (rod@rodsoto.net)
+- Issues: Report via GitHub issues
+
+
