@@ -62,7 +62,7 @@ Run these searches to verify CIM 5.0+ compliance:
   | stats count by _time src dest url http_method status http_content_type
 
 index=main sourcetype=ollama:server
-| stats count by action, src, dest, http_method, status, url, protocol
+| stats count by src, dest, http_method, status, url, protocol
 
 ```
 
