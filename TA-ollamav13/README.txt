@@ -57,7 +57,7 @@ Run these searches to verify CIM 5.0+ compliance:
 
 ```spl
 | datamodel Web search
-  | search Web.vendor_product="Ollama API Server"
+  | search Web.vendor_product="Ollama*"
   | rename Web.* as *
   | stats count by _time src dest url http_method status http_content_type
 
