@@ -1,5 +1,5 @@
 Splunk Technology Add-on for Ollama Large Language Model Monitoring
-by Rod Soto (rod@rodsoto.net)
+by Rod Soto 
 <img width="1272" height="442" alt="cimv51" src="https://github.com/user-attachments/assets/c8d98c64-9825-4eeb-bbb6-0c21ae663a60" />
 <img width="1268" height="626" alt="cimv52" src="https://github.com/user-attachments/assets/385c2ce7-c813-4f39-bd3c-db4a89f09443" />
 
@@ -67,7 +67,7 @@ Run these searches to verify CIM 5.0+ compliance:
   | stats count by _time src dest url http_method status http_content_type
 
 index=main sourcetype=ollama:server
-| stats count by action, src, dest, http_method, status, url, protocol
+| stats count by src, dest, http_method, status, url, protocol
 
 ```
 
