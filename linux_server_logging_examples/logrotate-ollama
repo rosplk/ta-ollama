@@ -1,0 +1,9 @@
+/var/log/ollama/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0644 ollama ollama
+}
