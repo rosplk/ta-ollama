@@ -70,12 +70,112 @@ index=main sourcetype=ollama:server
 | stats count by src, dest, http_method, status, url, protocol
 
 ```
+Linux Server Logging Setup
+
+<img width="1743" height="856" alt="Screenshot from 2025-11-15 20-45-05" src="https://github.com/user-attachments/assets/e02883c1-2340-44ce-a5a0-b46706fdde03" />
+
+
+  Important: Ollama on Linux logs to systemd/journalctl by default, not to files. You must configure file-based logging for
+   the TA to collect data.
+
+  Quick Setup
+
+  1. Create log directory:
+  sudo mkdir -p /var/log/ollama
+  sudo chown ollama:ollama /var/log/ollama
+  sudo chmod 755 /var/log/ollama
+
+  2. Configure systemd service:
+
+  Edit /etc/systemd/system/ollama.service and add these lines in the [Service] section:
+
+  StandardOutput=append:/var/log/ollama/ollama.log
+  StandardError=append:/var/log/ollama/ollama.log
+
+  Complete example:
+  [Unit]
+  Description=Ollama Service
+  After=network-online.target
+
+  [Service]
+  ExecStart=/usr/local/bin/ollama serve
+  User=ollama
+  Group=ollama
+  Restart=always
+  RestartSec=3
+  Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+  # Log configuration - redirect stdout and stderr to log file
+  StandardOutput=append:/var/log/ollama/ollama.log
+  StandardError=append:/var/log/ollama/ollama.log
+
+  [Install]
+  WantedBy=default.target
+
+  Log Verbosity Levels
+
+  Control log verbosity with the OLLAMA_DEBUG environment variable. Add this to the [Service] section:
+
+  INFO (Recommended for Production):
+  Environment="OLLAMA_DEBUG=INFO"
+  - Includes HTTP access logs (GIN format) required for Splunk CIM compliance
+  - Server startup/shutdown events
+  - Model loading notifications
+  - Moderate log volume
+
+  DEBUG (Verbose - for troubleshooting):
+  Environment="OLLAMA_DEBUG=DEBUG"
+  - All INFO logs plus detailed internal debugging
+  - Higher log volume - consider log rotation
+  - Useful for troubleshooting issues
+
+  WARN (Minimal logging):
+  Environment="OLLAMA_DEBUG=WARN"
+  - Only warnings and errors
+  - May miss some HTTP access logs
+  - Not recommended for Splunk monitoring
+
+  Default: If not specified, Ollama defaults to INFO level.
+
+  3. Apply changes:
+  sudo systemctl daemon-reload
+  sudo systemctl restart ollama
+
+  4. Verify logging:
+  sudo tail -f /var/log/ollama/ollama.log
+
+  You should see GIN-formatted HTTP access logs like:
+  [GIN] 2025/11/15 - 20:24:51 | 200 | 47.014µs | 127.0.0.1 | POST "/api/generate"
+
+  5. Configure log rotation (recommended):
+
+  Create /etc/logrotate.d/ollama:
+  /var/log/ollama/ollama.log {
+      daily
+      rotate 7
+      compress
+      delaycompress
+      missingok
+      notifempty
+      create 0644 ollama ollama
+  }
+
+  6. Configure Splunk input:
+
+  In Splunk, add to local/inputs.conf:
+  [monitor:///var/log/ollama/ollama.log]
+  disabled = 0
+  index = main
+  sourcetype = ollama:server
+
+  Note: Windows and macOS users can skip this section - Ollama creates log files automatically on those platforms.
 
 Requirements
 
 - Splunk Enterprise 8.0+ or Splunk Cloud Platform
 - Ollama server running with GIN logging format
 - For HEC inputs: HTTP Event Collector configured
+
 
 License
 
