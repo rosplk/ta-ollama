@@ -1,4 +1,5 @@
 Splunk Technology Add-on for Ollama Large Language Model Monitoring
+Tested on Ollama v0.12.11
 by Rod Soto 
 <img width="1272" height="442" alt="cimv51" src="https://github.com/user-attachments/assets/c8d98c64-9825-4eeb-bbb6-0c21ae663a60" />
 <img width="1268" height="626" alt="cimv52" src="https://github.com/user-attachments/assets/385c2ce7-c813-4f39-bd3c-db4a89f09443" />
