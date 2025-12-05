@@ -1,8 +1,11 @@
 Splunk Technology Add-on for Ollama Large Language Model Monitoring
-Tested on Ollama v0.12.11
+Tested on Ollama v0.13.1
 by Rod Soto 
+<img width="1793" height="823" alt="Screenshot 2025-12-05 at 2 11 19 PM" src="https://github.com/user-attachments/assets/320ae4e9-d670-4185-b9c3-80ee89ca56a7" />
+
 <img width="1272" height="442" alt="cimv51" src="https://github.com/user-attachments/assets/c8d98c64-9825-4eeb-bbb6-0c21ae663a60" />
-<img width="1268" height="626" alt="cimv52" src="https://github.com/user-attachments/assets/385c2ce7-c813-4f39-bd3c-db4a89f09443" />
+<img width="1810" height="513" alt="Screenshot 2025-12-05 at 2 19 29 PM" src="https://github.com/user-attachments/assets/003d3be6-cc88-46a5-93e8-1dde8fdb14bf" />
+
 
 
 
@@ -10,6 +13,80 @@ by Rod Soto
 Overview
 
 TA-ollama provides comprehensive monitoring capabilities for Ollama large language model deployments within Splunk. The add-on enables organizations to gain operational visibility into their LLM infrastructure through file monitoring, custom telemetry collection and CIM compliance.
+
+## Version 0.1.5 (2025-12-04)
+
+### Bug Fixes
+- **Event Line Breaking**: Fixed event segmentation to break on time boundaries instead of GIN pattern
+  - Added `TIME_PREFIX` to handle both GIN and standard Ollama log time formats
+  - Added `MAX_TIMESTAMP_LOOKAHEAD` for improved timestamp detection
+  - Prevents duplicate events and incorrect multi-line event creation
+
+- **Field Extraction Improvements**:
+  - Updated regex in transforms.conf to handle variable-width padding in GIN logs
+  - Added trim() operations for `src` and `response_time` fields to remove visual alignment padding
+  - Better handling of IPv4 vs IPv6 spacing differences in GIN output
+
+- **Time Parsing Enhancements**:
+  - Extended `response_time_ms` calculation to handle compound time formats (e.g., "15m29s")
+  - Properly converts long-duration requests (model downloads, complex generations)
+  - Fixes inaccurate time calculations for requests exceeding 60 seconds
+
+### CIM Compliance Enhancements
+- **Added `method` field**: Standard CIM Web datamodel field alias for http_method
+  - Improves compatibility with CIM-compliant searches and dashboards
+  - Better integration with Splunk Enterprise Security (ES)
+
+- **Added `code_source` field**: Extracts Go source file locations from structured logs
+  - Example: `server.go:1332`, `sched.go:517`
+  - Useful for troubleshooting and debugging Ollama internals
+  - Avoids conflict with Splunk's built-in `source` metadata field
+
+- **Improved `uri_query` extraction**: Dynamic extraction instead of hardcoded empty string
+  - Properly extracts query parameters when present (e.g., `/api/models?name=llama`)
+  - Returns null when no query string exists
+
+### Configuration Fixes
+- **inputs.conf.spec Universal Forwarder Compatibility**: Fixed stanza conflict with Universal Forwarder
+  - Removed explicit `[monitor://<path>]` stanza definition from inputs.conf.spec
+  - Converted monitor configuration to documentation comments only
+  - Resolves "conflicts with splunk stanza" error on Universal Forwarder deployments
+  - Added reference to GitHub documentation for Linux log collection setup
+  - No functional impact - monitor inputs continue to work as expected
+
+### Technical Changes
+- Modified `props.conf`:
+  - Added TIME_PREFIX, MAX_TIMESTAMP_LOOKAHEAD, and field trimming EVALs
+  - Added `FIELDALIAS-cim_web_method = http_method AS method`
+  - Added `EVAL-code_source` for Go source file extraction
+  - Updated `EVAL-uri_query` for dynamic extraction
+- Modified `transforms.conf`: Simplified regex with non-greedy matching for variable spacing
+- No reindex required (search-time only changes)
+
+### Testing & Validation
+- Verified HEC integration with ollama:prompts and ollama:api sourcetypes
+- Tested field extraction with multiple log formats (GIN HTTP logs, structured logs)
+- Validated CIM Web datamodel compliance
+- Confirmed all core and extended CIM fields are properly populated
+
+### Impact
+- Resolves duplicate event issues
+- Improves accuracy for long-running operation detection
+- Better data quality for security detections and analytics
+- Enhanced CIM compliance for enterprise deployments
+- Improved Splunkbase standards adherence
+
+## Version 0.1.4 (2025-11-20)
+
+### Bug Fixes
+- **AWS Splunk Compatibility**: Fixed transform validation error with `ollama_static_cim_fields`
+  - Migrated static CIM field assignments from transforms.conf to EVAL statements in props.conf
+  - Resolves "regex has no capturing groups, but FORMAT has capturing group references" error
+  - Improves cross-platform compatibility across all Splunk deployments
+
+### Improvements
+- More efficient static field assignment using EVAL instead of REPORT transforms
+- Simplified configuration with all field mappings consolidated in props.conf
 
 Version 0.1.3 - CIM 5.0+ Compliance
 
